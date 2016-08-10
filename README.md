@@ -4,3 +4,5 @@
 3. Adding mulity files upload UI
 
 
+![image](https://github.com/cw1427/Resumable-File-Upload/blob/master/screenshot/1.png)
+![image](https://github.com/cw1427/Resumable-File-Upload/blob/master/screenshot/2.png)
