@@ -1,0 +1,315 @@
+﻿<extend name="./Tpl/base.html"/>
+<block name="headMessages">
+<include file="./Application/Home/View/Public/headMessage.html"/>
+</block>
+<block name="headAlarms">
+<include file="./Application/Home/View/Public/headAlarm.html"/>
+</block>
+<block name="headProfile">
+<include file="./Application/Home/View/Public/headProfile.html"/>
+</block>
+<block name="breadcrumb">
+<include file="./Application/Home/View/Public/breadcrumb.html"/>
+</block>
+<block name="shortCutLarge">
+<include file="./Application/Home/View/Public/shortCutLarge.html"/>
+</block>
+<block name="shortCutMini">
+<include file="./Application/Home/View/Public/shortCutMini.html"/>
+</block>
+<block name="nav">
+
+</block>
+<block name="pageContent">
+ 
+
+
+<div class="row">
+	<div class="col-xs-12">
+		
+		<div class="col-sm-12 widget-container-span">
+			      <div class="resumable-error">
+			        Your browser, unfortunately, is not supported by Resumable.js. The library requires support for <a href="http://www.w3.org/TR/FileAPI/">the HTML5 File API</a> along with <a href="http://www.w3.org/TR/FileAPI/#normalization-of-params">file slicing</a>.
+			      </div>
+			
+			      <div class="row resumable-drop" ondragenter="jQuery(this).addClass('resumable-dragover');" ondragend="jQuery(this).removeClass('resumable-dragover');" ondrop="jQuery(this).removeClass('resumable-dragover');">
+			        <div class="col-sm-6">
+			        	Drop video files here to upload or <a class="btn btn-danger resumable-browse"><u>select from your computer</u></a>
+			        </div>
+			        <div class="col-sm-6 total-progress-container" style="margin-top:20px">
+			        	<div class="total-progress-bar"></div>
+			        </div>
+			      </div>
+			      
+			      <div class="resumable-progress">
+			        <table>
+			          <tr>
+			            <td width="100%"><div class="progress-container"><div class="progress-bar"></div></div></td>
+			            <td class="progress-text" nowrap="nowrap"></td>
+			            <td class="progress-pause" nowrap="nowrap">
+			              <a href="#" onclick="r.upload(); return(false);" class="btn btn-success progress-resume-link">upload</a>
+			              <a href="#" onclick="r.pause(); return(false);" class="btn btn-warning progress-pause-link">pause</a>
+			              <a href="#" onclick="r.cancel(); return(false);" class="btn btn-danger progress-cancel-link">cancel</a>
+			            </td>
+			          </tr>
+			        </table>
+			      </div>
+			      
+			      <ul class="resumable-list"></ul>
+			
+		</div>	
+		
+	</div>	
+</div>	<!-- end of row -->
+
+<div class="space-6"></div>
+<!----<div class="hr hr12 dotted"></div>--->
+<h4 class="header blue bolder smaller">快捷查询</h4>
+<!--快捷查询--->
+<form id="" action="{:U('normalUpload')}" method="POST" enctype="multipart/form-data">
+<div class="row col-xs-12">
+	<div id="wholeLoadingDIV">
+        <div class="control-group" id="div_field_uploadfile">
+            <div class="normal row-fluid">
+                <div class="span3">
+                <span id="uploadSpan" class="btn btn-warning fileinput-button">
+                    <span>Choose a file upload.</span>
+                    <input type="file" id="uploadfile" title="Search for a file to add" name="file" data-filename-placement="inside">
+                </span>
+                <span id="percentage">0%</span>
+                </div>
+                <div class="normal-progress progress progress-warning progress-striped active span9"><div class="bar" style=""></div></div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+          <!-- <a href="javascript:void(0)" class="btn btn-primary" ms-click="check_form">Submit</a> -->
+          <div class="row-fluid">
+              <div class="span3"><span class="warning">Completed List:</span></div>
+              <div id="files" class="span9">
+                  
+              </div>
+          </div>
+        </div>
+    </div>
+</div>	<!-- end of row -->
+</form>
+
+</block>
+<block name="innerScript">
+<!-- template for appending breakpoint file li -->
+<script type="text/x-tmpl" id="breakpoint-file">
+<li class="resumable-file-{%#o.uniqueIdentifier%}">
+    Uploading <span class="resumable-file-name">{%=o.fileName%}({%=o.regularSize%})[{%=o.uniqueIdentifier%}]</span> <span class="resumable-file-progress"></span>
+    <div class="row-fluid"><div class="progress progress-striped active span9"><div class="bar" style=""></div></div>
+    <div class="span3">
+        <a href="#" onclick="r.triggerFileEvent('{%#o.uniqueIdentifier%}','resume'); return(false);" class="btn btn-success file-progress-resume-link">upload</a>
+        <a href="#" onclick="r.triggerFileEvent('{%#o.uniqueIdentifier%}','pause'); return(false);" class="btn btn-warning file-progress-pause-link">pause</a>
+        <a href="#" onclick="r.triggerFileEvent('{%#o.uniqueIdentifier%}','cancel'); return(false);" class="btn btn-danger file-progress-cancel-link">cancel</a>
+    </div>
+</li>
+</script>
+
+<script type="text/javascript">
+	$('#uploadfile').fileupload({
+        url: "{:U('normalUpload')}",
+        dataType: 'json',
+        change: function (e, data) {
+            $('#wholeLoadingDIV').showLoading();
+            $.each(data.files, function (index, file) {
+                $('<p/>').text(file.name).appendTo('#files');
+            });
+            $('#uploadSpan').addClass('disabled');
+            $('#uploadfile').fileupload('disable');
+        },
+        done: function (e, data) {
+            $('#uploadfile').fileupload('enable');
+            $('#uploadSpan').removeClass('disabled');
+            $.each(data.result.files, function (index, file) {
+                 
+            });
+            $('#wholeLoadingDIV').hideLoading();
+        },
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('.normal-progress .bar').css(
+                'width',
+                progress + '%'
+            );
+            $('#percentage').html(progress+'%');
+        }
+    }).prop('disabled', !$.support.fileInput)
+        .parent().addClass($.support.fileInput ? undefined : 'disabled');
+
+		var r;
+		jQuery(function($) {
+			 r = new Resumable({
+	            target:"{:U('resumeUpload')}",
+	            chunkSize:1*1024*1024,
+	            simultaneousUploads:4,
+	            testChunks: true,
+	            throttleProgressCallbacks:1,
+	            generateUniqueIdentifier:genMd5,
+	          });
+	        // Resumable.js isn't supported, fall back on a different method
+	        if(!r.support) {
+	          $('.resumable-error').show();
+	        } else {
+	          // Show a place for dropping/selecting files
+	          $('.resumable-drop').show();
+	          r.assignDrop($('.resumable-drop')[0]);
+	          r.assignBrowse($('.resumable-browse')[0]);
+	
+	          // Handle file add event
+	          r.on('fileAdded', function(file){
+	              // Show progress pabr
+                  $('.resumable-progress, .resumable-list').show();
+                  $('total-progress-container').hide();
+                  // Show pause, hide resume
+                  $('.resumable-progress .progress-resume-link').hide();
+                  $('.resumable-progress .progress-pause-link').show();
+                  $('.resumable-progress .progress-cancel-link').show();
+                  // Add the file to the list
+                  //----remove this exists file first
+                  $('.resumable-file-'+file.uniqueIdentifier).remove();
+                  $('.resumable-file-'+file.uniqueIdentifier).remove();
+                  $('.resumable-list').append(tmpl("breakpoint-file", file));
+                 // Show file's 'pause, hide resume
+                  $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').hide();
+                  $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').show();
+                  $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').show();
+                  file.on('pause',function(){
+                      file.pause(true);
+                      file.abort();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').show();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').hide();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').show();
+                  });
+                  file.on('cancel',function(){
+                      file.cancel();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').hide();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').hide();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').hide();
+                  });
+                  file.on('resume',function(){
+                      file.pause(false);
+                      r.upload();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').hide();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').show();
+                      $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').show();
+                  });
+                  //----set for the offset
+                  checkFileChunkStartOffset(file.uniqueIdentifier).then(function(value){
+                        file.chunkStartOffset=value;
+                        file.initSet();
+                        r.upload();
+                  });
+	            });
+	          r.on('pause', function(){
+	              // Show resume, hide pause
+	              $('.resumable-progress .progress-resume-link').show();
+	              $('.resumable-progress .progress-pause-link').hide();
+	            });
+	          r.on('progress', function(){
+	              $('.resumable-progress .progress-resume-link').hide();
+	              $('.resumable-progress .progress-pause-link').show();
+	              $('.total-progress-bar').css({width:Math.floor(r.progress()*100) + '%'});
+	            });  
+	          r.on('cancel', function(){
+	              $('.resumable-progress .progress-pause-link').hide();
+	              $('.resumable-progress .progress-cancel-link').hide();
+	              //----TODO remove the latest node in the $('.resumable-list')
+	            }); 
+	          
+	          r.on('complete', function(){
+	              // Hide pause/resume when the upload has completed
+	              $('.resumable-progress .progress-resume-link, .resumable-progress .progress-pause-link, .resumable-progress .progress-cancel-link').hide();
+                  $('.progress-bar').css({width:100 + '%'});
+	            });
+	          r.on('fileSuccess', function(file,message){
+	              // Reflect that the file upload has completed
+	              $('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-progress').html('(completed)');
+	              //----set file-progress-bar to 100%
+                  $('.resumable-file-'+file.uniqueIdentifier+' .progress .bar').css({width:100 + '%'});
+	            });
+	          r.on('fileError', function(file, message){
+	              // Reflect that the file upload has resulted in error
+	              $('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-progress').html('(file could not be uploaded: '+message+')');
+	            });
+	          r.on('fileProgress', function(file){
+	              // Handle progress for both the file and the overall upload
+	              $('.resumable-file-'+file.uniqueIdentifier+' .resumable-file-progress').html(Math.floor(file.progress()*100) + '%');
+                  $('.resumable-file-'+file.uniqueIdentifier+' .progress .bar').css({width:Math.floor(file.progress()*100) + '%'});
+                  $('.progress-bar').css({width:Math.floor(r.progress()*100) + '%'});
+	            });
+	        }
+	        //--------------------------------------------------		   
+		});	
+		
+		
+        function checkFileChunkStartOffset(identify){
+            //----TODO need know the file api about the javascript DOM object File.
+            if (identify==null || identify=="") {
+                throw new Error('ResumableFile identify is empty when checkFileChunkStartOffset');
+            }
+            return new Promise(function(resolve, reject) {
+            	console.log('----checkFile call ajax identify='+identify);
+               $.ajax({
+                    type: "post",
+                    cache:false,
+                    url: "{:U('checkFileChunkStartOffset')}",
+                    data:{"identify":identify},
+                    contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                    success: function (data,status){               		
+                    	   var data=$.parseJSON(data);
+                           if( data.error !== undefined && data.error != '')
+                           {
+                               console.log(data.error);
+                               resolve(0);
+                           }else
+                           {
+                               resolve(data.offset);
+                           }
+                    },
+                    error: function (data, status, e){
+                        console.log('internal error when check chunk start offset');
+                        resolve(0);
+                    }
+                });
+            });
+        }
+					
+	
+</script>			
+</block>
+<block name="style">
+		<link rel="stylesheet" href="__PUBLIC__/assets/css/daterangepicker.css" />
+		<script src="__PUBLIC__/assets/js/jquery-ui-1.10.3.full.min.js"></script>
+		<script src="__PUBLIC__/assets/js/jquery.ui.touch-punch.min.js"></script>
+		<script src="__PUBLIC__/assets/js/jquery.slimscroll.min.js"></script>
+		<script src="__PUBLIC__/assets/js/chosen.jquery.min.js"></script>
+		<script src="__PUBLIC__/assets/js/date-time/moment.min.js"></script>
+		<script src="__PUBLIC__/assets/js/date-time/daterangepicker.min.js"></script>	
+		<script src="__PUBLIC__/assets/js/bootbox.min.js"></script>
+		<script src="__PUBLIC__/assets/js/jquery.validate.min.js"></script>
+		<script src="__PUBLIC__/assets/js/jquery.maskedinput.min.js"></script>
+		<script src="__PUBLIC__/assets/js/jquery.autosize.min.js"></script>
+		<link href="__PUBLIC__/css/ajaxfileupload.css" type="text/css" rel="stylesheet">
+		<script type="text/javascript" src="__PUBLIC__/js/ajaxfileupload.js"></script>
+		<script type="text/javascript" src="__PUBLIC__/js/bootstrap.file-input.js"></script>			
+		<script type="text/javascript" src="__PUBLIC__/js/jquery.lightbox-0.5.js"></script>
+	    <link rel="stylesheet" type="text/css" href="__PUBLIC__/css/jquery.lightbox-0.5.css" media="screen" />
+	    <link rel="stylesheet"  type="text/css" href="__PUBLIC__/css/style.css" />
+	    <!-- test for jquery.fileupload.js -->
+	    <script src="__PUBLIC__/js/jquery.ui.widget.js"></script>
+	    <script src="__PUBLIC__/js/resumable.js"></script>
+	    <script src="__PUBLIC__/js/resumable-wrapper.js"></script>
+	    <script src="__PUBLIC__/js/spark-md5.js"></script>
+	    <script src="__PUBLIC__/js/jquery.iframe-transport.js"></script>
+	    <script src="__PUBLIC__/js/jquery.xdr-transport.js"></script>
+	    <script src="__PUBLIC__/js/jquery.fileupload.js"></script>
+	    <script src="__PUBLIC__/js/tmpl.min.js"></script>
+	    <link rel="stylesheet"  type="text/css" href="__PUBLIC__/css/jquery.fileupload.css" />
+	    <link rel="stylesheet"  type="text/css" href="__PUBLIC__/css/jquery.fileupload-ui.css" />
+
+</block>	
