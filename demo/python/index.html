@@ -109,6 +109,7 @@
 </script>
 <script type="text/javascript">
 var r;
+var resumeFiles=[];
 var vm = avalon.define({
     $id: "transfer",
     file_list:[],
@@ -118,36 +119,36 @@ var vm = avalon.define({
 
 });
 
-    $('#uploadfile').fileupload({
-        url: "{{=url_for('transfer.views.normalupload')}}",
-        dataType: 'json',
-        change: function (e, data) {
-            $('#wholeLoadingDIV').showLoading();
-            $.each(data.files, function (index, file) {
-                //$('<p/>').text(file.name).appendTo('#files');
-                vm.add_file(file.name);
-            });
-            $('#uploadSpan').addClass('disabled');
-            $('#uploadfile').fileupload('disable');
-        },
-        done: function (e, data) {
-            $('#uploadfile').fileupload('enable');
-            $('#uploadSpan').removeClass('disabled');
-            $.each(data.result.files, function (index, file) {
-                 
-            });
-            $('#wholeLoadingDIV').hideLoading();
-        },
-        progressall: function (e, data) {
-            var progress = parseInt(data.loaded / data.total * 100, 10);
-            $('.normal-progress .bar').css(
-                'width',
-                progress + '%'
-            );
-            $('#percentage').html(progress+'%');
-        }
-    }).prop('disabled', !$.support.fileInput)
-        .parent().addClass($.support.fileInput ? undefined : 'disabled');
+$('#uploadfile').fileupload({
+    url: "{{=url_for('transfer.views.normalupload')}}",
+    dataType: 'json',
+    change: function (e, data) {
+        $('#wholeLoadingDIV').showLoading();
+        $.each(data.files, function (index, file) {
+            //$('<p/>').text(file.name).appendTo('#files');
+            vm.add_file(file.name);
+        });
+        $('#uploadSpan').addClass('disabled');
+        $('#uploadfile').fileupload('disable');
+    },
+    done: function (e, data) {
+        $('#uploadfile').fileupload('enable');
+        $('#uploadSpan').removeClass('disabled');
+        $.each(data.result.files, function (index, file) {
+             
+        });
+        $('#wholeLoadingDIV').hideLoading();
+    },
+    progressall: function (e, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $('.normal-progress .bar').css(
+            'width',
+            progress + '%'
+        );
+        $('#percentage').html(progress+'%');
+    }
+}).prop('disabled', !$.support.fileInput)
+    .parent().addClass($.support.fileInput ? undefined : 'disabled');
                     
                     
 avalon.ready(function(){
@@ -158,12 +159,14 @@ avalon.ready(function(){
 function init(){
     r = new Resumable({
                 target:'{{=url_for("transfer.views.resumeupload")}}',
-                chunkSize:10*1024*1024,
+                chunkSize:1*1024*1024,
                 simultaneousUploads:4,
                 testChunks: true,
                 throttleProgressCallbacks:1,
-                fileType:['zip','tar','tgz','iso','img'],
+                fileType:['zip','tar','tgz','iso','img','avi','rmvb'],
                 //generateUniqueIdentifier:genMd5,
+                query:{name:'chenwen'},
+                maxFiles:4,
               });
             // Resumable.js isn't supported, fall back on a different method
             if(!r.support) {
@@ -176,6 +179,8 @@ function init(){
     
               // Handle file add event
               r.on('fileAdded', function(file){
+                  //----append file into list
+                  resumeFiles.push(file.uniqueIdentifier);
                   // Show progress pabr
                   $('.resumable-progress, .resumable-list').show();
                   // Show pause, hide resume
@@ -193,19 +198,21 @@ function init(){
                   file.on('pause',function(){
                       file.pause(true);
                       file.abort();
+                      r.upload(file.uniqueIdentifier);
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').show();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').hide();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').show();
                   });
                   file.on('cancel',function(){
                       file.cancel();
+                      r.upload(file.uniqueIdentifier);
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').hide();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').hide();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').hide();
                   });
                   file.on('resume',function(){
                       file.pause(false);
-                      r.upload();
+                      r.upload(file.uniqueIdentifier);
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-resume-link').hide();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-pause-link').show();
                       $('.resumable-file-'+file.uniqueIdentifier+' .file-progress-cancel-link').show();
@@ -214,21 +221,44 @@ function init(){
                   checkFileChunkStartOffset(file.uniqueIdentifier).then(function(value){
                         file.chunkStartOffset=value;
                         file.initSet();
-                        r.upload();
+                        r.upload(file.uniqueIdentifier);
+                        r.fire('fileProgress', file);
                   });
                 });
               r.on('pause', function(){
                   // Show resume, hide pause
                   $('.resumable-progress .progress-resume-link').show();
                   $('.resumable-progress .progress-pause-link').hide();
+                  //----hide all of the uploading files
+                  for (var i = 0; i < resumeFiles.length; i++){
+                       //----check if it ie already cancel
+                       if (r.checkFileExists(resumeFiles[i])){
+                           $('.resumable-file-'+resumeFiles[i]+' .file-progress-resume-link').show();
+                           $('.resumable-file-'+resumeFiles[i]+' .file-progress-pause-link').hide();
+                       }
+                  }
                 });
               r.on('progress', function(){
                   $('.resumable-progress .progress-resume-link').hide();
                   $('.resumable-progress .progress-pause-link').show();
+                  //----hide all of the uploading files
+                  for (var i = 0; i < resumeFiles.length; i++){
+                       //----check if it ie already cancel
+                       if (r.checkFileExists(resumeFiles[i]) && !r.checkFilePause(resumeFiles[i])){
+                           $('.resumable-file-'+resumeFiles[i]+' .file-progress-resume-link').hide();
+                           $('.resumable-file-'+resumeFiles[i]+' .file-progress-pause-link').show();
+                       }
+                  }
                 });
               r.on('cancel', function(){
                   $('.resumable-progress .progress-pause-link').hide();
                   $('.resumable-progress .progress-cancel-link').hide();
+                  //----hide all of the uploading files
+                  for (var i = 0; i < resumeFiles.length; i++){
+                       $('.resumable-file-'+resumeFiles[i]+' .file-progress-resume-link').hide();
+                       $('.resumable-file-'+resumeFiles[i]+' .file-progress-pause-link').hide();
+                       $('.resumable-file-'+resumeFiles[i]+' .file-progress-cancel-link').hide();
+                  }
                 });
               
               r.on('complete', function(){

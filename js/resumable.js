@@ -458,12 +458,12 @@
         $h.each(_chunks, function(c){
           if(c.status()=='uploading')  {
             c.abort();
-            $.resumableObj.uploadNextChunk();
+            //$.resumableObj.uploadNextChunk();
           }
         });
         $.resumableObj.removeFile($);
         $.resumableObj.fire('fileProgress', $);
-        $.resumableObj.uploadNextChunk();
+        //$.resumableObj.uploadNextChunk();
       };
       $.retry = function(){
         $.bootstrap();
@@ -962,7 +962,14 @@
       });
       return(uploading);
     };
-    $.upload = function(){
+    $.upload = function(identify){
+      //----changed by cw reset every file to pause=false;
+      if (identify === undefined){
+          $h.each($.files, function(file){
+              file.pause(false);
+          });
+      }
+
       // Make sure we don't start too many uploads at once
       if($.isUploading()) return;
       // Kick off the queue
@@ -975,6 +982,8 @@
       // Resume all chunks currently being uploaded
       $h.each($.files, function(file){
         file.abort();
+        //----changed by cw set file pause to true
+        file.pause(true);
       });
       $.fire('pause');
     };
@@ -982,6 +991,8 @@
       $.fire('beforeCancel');
       for(var i = $.files.length - 1; i >= 0; i--) {
         $.files[i].cancel();
+        //----changed by cw  trigger file cancel event
+        //$.triggerFileEvent($.files[i].uniqueIdentifier,'cancel');
       }
       $.fire('cancel');
     };
@@ -1036,6 +1047,29 @@
                 return;
             }
         });
+    };
+    //----added by cw check if file exists in Resumable
+    $.checkFileExists = function (identify) {
+         var exists=false;
+         for (var i = 0; i < $.files.length; i++){
+             if (identify === $.files[i].uniqueIdentifier){
+                 exists=true;
+                 break;
+             }
+         }
+         return exists;
+    };
+    //----added by cw check if file is pause
+    $.checkFilePause = function (identify) {
+        var result=false;
+        for (var i = 0; i < $.files.length; i++){
+             if (identify === $.files[i].uniqueIdentifier){
+                 result =  $.files[i].isPaused();
+                 break;
+             }
+        }
+        return result;
+
     }
 
     return(this);
