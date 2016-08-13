@@ -25,7 +25,7 @@
         String.prototype.toByteArray = function () {
             ///<summary>
             /// UTF8 string to byte array
-            ///	</summary>
+            ///    </summary>
             ENCODING = 1;
             return toArray(this);
         };
@@ -35,7 +35,7 @@
         String.prototype.toUnicodeByteArray = function () {
             ///<summary>
             /// Unicode string to byte array
-            ///	</summary>
+            ///    </summary>
             ENCODING = 2;
             return toArray(this);
         };
@@ -45,7 +45,7 @@
         String.prototype.toUTF32ByteArray = function () {
             ///<summary>
             /// UTF32 string to byte array
-            ///	</summary>
+            ///    </summary>
             ENCODING = 4;
             return toArray(this);
         };
@@ -86,7 +86,7 @@
                 console.log('read chunk nr', currentChunk + 1, 'of', chunks);
                 spark.append(e.target.result);                   // Append array buffer
                 
-                if (currentChunk == 0 )
+                if (currentChunk == 0 && chunks > 1 )
                     currentChunk = chunks - 2;
                 currentChunk++;
                 

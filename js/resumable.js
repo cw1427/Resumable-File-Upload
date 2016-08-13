@@ -1053,7 +1053,8 @@
          var exists=false;
          for (var i = 0; i < $.files.length; i++){
              if (identify === $.files[i].uniqueIdentifier){
-                 exists=true;
+                 //exists=true;
+                 exists=!$.files[i].isComplete();
                  break;
              }
          }

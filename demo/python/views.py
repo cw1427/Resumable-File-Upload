@@ -61,7 +61,6 @@ def resumeupload():
     resumableChunkSize = int(request.params['resumableChunkSize'])
     resumableIdentifier = request.params['resumableIdentifier']
     resumableTotalChunks = int(request.params['resumableTotalChunks'])
-    name = request.params['name']
     ruModel = get_model('resumableUpload')
     resumableUploadObj = ruModel.get(ruModel.c.guid == resumableIdentifier)
     if request.method == 'GET':

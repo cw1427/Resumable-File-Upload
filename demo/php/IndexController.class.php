@@ -279,8 +279,6 @@ public function PGSearchAction(){
     	$resumableChunkSize = I('resumableChunkSize');
     	$resumableIdentifier = I('resumableIdentifier');
     	$totalChunks = I('resumableTotalChunks');
-    	   
-    	$name = I('name');
     	\Think\Log::record('---chunkNumber=' . $resumableChunkNumber . ' ---chunkSize=' . $resumableChunkSize . ' ---name=' .$name, \Think\Log::DEBUG);
     	
     	//header('HTTP/1.1 500 Error');
